@@ -7,9 +7,10 @@ import android.util.Log;
 import androidx.appcompat.app.ActionBar;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 /**
- * This class should be extended for all activities that involve logged-in users.
+ * Parent class for all activities that involve logged-in functionality.
  */
 public class LoggedInActivity extends MenuActivity {
     public static final String DEBUG_TAG = "LoggedInActivity";
@@ -24,10 +25,15 @@ public class LoggedInActivity extends MenuActivity {
         Log.d(DEBUG_TAG, "LoggedInActivity.onCreate()");
 
         // ancestor activity, disable up button
-        ActionBar ab = getSupportActionBar();
-        if (ab != null) {
-            ab.setDisplayHomeAsUpEnabled(false);
-            ab.setTitle(R.string.app_name);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            ActionBar ab = getSupportActionBar();
+            if (ab != null) {
+                ab.setDisplayHomeAsUpEnabled(false);
+                ab.setTitle(getString(R.string.account_prefix) + " " + user.getEmail());
+            }
+        } else {
+            finish();
         }
 
         mAuth = FirebaseAuth.getInstance();
