@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">Roommate Shopping App</string>
+    <string name="welcome_text">Welcome to the roommate shopping app! This is an app designed to make shopping for a multi-person household easier!</string>
+    <string name="app_icon">App icon</string>
+    <string name="start_text">Start Shopping</string>
+    <string name="action_logout">Logout</string>
+    <!-- Strings related to login -->
+    <string name="title_register">User registration</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_password_confirm">Confirm Password</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_create_account">Create account</string>
+    <string name="login_failed">"Login failed"</string>
 </resources>

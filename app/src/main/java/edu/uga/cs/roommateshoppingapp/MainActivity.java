@@ -1,72 +1,112 @@
 package edu.uga.cs.roommateshoppingapp;
 
-import androidx.annotation.NonNull;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
+import com.firebase.ui.auth.AuthUI;
+import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
+import com.firebase.ui.auth.IdpResponse;
+import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * The splash activity for the app. Presents basic app info to the user and allows for account
+ * registration/login.
+ */
 public class MainActivity extends AppCompatActivity {
     public static final String DEBUG_TAG = "MainActivity";
-    private FirebaseAuth mAuth;
+    private Button buttonLogin;
+    private Button buttonRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mAuth = FirebaseAuth.getInstance();
-        String email = "dawg@mail.com";
-        String password = "password";
+        Log.d(DEBUG_TAG, R.string.app_name + ": MainActivity.onCreate()");
 
-        mAuth.signInWithEmailAndPassword( email, password )
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            Log.d( DEBUG_TAG, "signInWithEmail:success" );
-                            FirebaseUser user = mAuth.getCurrentUser();
-                        }
-                        else {
-                            // If sign in fails, display a message to the user.
-                            Log.d( DEBUG_TAG, "signInWithEmail:failure", task.getException() );
-                            Toast.makeText( MainActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+        // ancestor activity, disable up button
+        ActionBar ab = getSupportActionBar();
+        if (ab != null) {
+            ab.setDisplayHomeAsUpEnabled(false);
+            ab.setTitle(R.string.app_name);
+        }
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference( "message" );
+        // define views
+        buttonLogin = findViewById(R.id.button);
+        buttonRegister = findViewById(R.id.button2);
 
-        // Read from the database value for ”message”
-        myRef.addValueEventListener( new ValueEventListener() {
-            @Override
-            public void onDataChange( DataSnapshot dataSnapshot ) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String message = dataSnapshot.getValue( String.class );
-                Log.d( DEBUG_TAG, "Got message: " + message );
-            }
+        // set up button event listeners
+        buttonLogin.setOnClickListener(view -> {
+            List<AuthUI.IdpConfig> providers = Collections.singletonList(
+                    new AuthUI.IdpConfig.EmailBuilder().build()
+            );
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w( DEBUG_TAG, "Failed to read value.", error.toException() );
-            }
+            Log.d(DEBUG_TAG, "MainActivity.SignInButtonClickListener: Signing in started");
+
+            // Create an Intent to sign in to Firebase.
+            Intent signInIntent = AuthUI.getInstance()
+                    .createSignInIntentBuilder()
+                    .setAvailableProviders(providers)
+                    // this sets our own theme (color scheme, sizing, etc.) for the AuthUI's appearance
+                    .setTheme(com.firebase.ui.auth.R.style.FirebaseUI)
+                    .build();
+            signInLauncher.launch(signInIntent);
         });
+
+        buttonRegister.setOnClickListener(view -> {
+            Log.d(DEBUG_TAG, "buttonRegister.onClick(): starting account register activity");
+            startActivity(new Intent(view.getContext(), RegisterActivity.class));
+        });
+    }
+
+    /**
+     * The ActivityResultLauncher class provides a new way to invoke an activity for some result.
+     * It is a replacement for the deprecated method startActivityForResult.
+     *
+     * The signInLauncher variable is a launcher to start the AuthUI's logging in process that
+     * should return to the MainActivity when completed.  The overridden onActivityResult is then
+     * called when the Firebase logging-in process is finished.
+     */
+    private final ActivityResultLauncher<Intent> signInLauncher = registerForActivityResult(
+            new FirebaseAuthUIActivityResultContract(),
+            this::onSignInResult
+    );
+
+    /**
+     * This method is called once the Firebase sign-in activity (launched above) returns (completes).
+     * Then, the current (logged-in) Firebase user can be obtained. Subsequently, there is a
+     * transition to the HomeActivity.
+     *
+     * @param result the result of the firebase authentication
+     */
+    private void onSignInResult(FirebaseAuthUIAuthenticationResult result) {
+        IdpResponse response = result.getIdpResponse();
+        if (result.getResultCode() == RESULT_OK) {
+            // Successfully signed in
+            if(response != null) {
+                Log.d(DEBUG_TAG, "MainActivity.onSignInResult: response.getEmail(): " + response.getEmail());
+            }
+
+            // after a successful sign in, start the home activity
+            startActivity(new Intent(this.getApplicationContext(), HomeActivity.class));
+        }
+        else {
+            Log.d(DEBUG_TAG, "MainActivity.onSignInResult: Failed to sign in");
+            // Sign in failed. If response is null the user canceled the
+            Toast.makeText(getApplicationContext(),
+                    "Sign in failed",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 }
