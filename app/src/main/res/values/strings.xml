@@ -1,4 +1,6 @@
 <resources>
+    <string name="add">Add</string>
+    <string name="cancel">Cancel</string>
     <!-- Strings related to splash screen -->
     <string name="app_name">Roommate Shopping App</string>
     <string name="welcome_text">Welcome to the roommate shopping app! This is an app designed to make shopping for a multi-person household easier!</string>
@@ -11,6 +13,10 @@
     <string name="action_view_list">Shopping list</string>
     <string name="action_view_cart">My cart</string>
     <string name="action_settle_cost">Settle the cost</string>
+    <!-- Strings related to shopping list -->
+    <string name="desc_floating_btn">Add a new shopping item</string>
+    <string name="action_enter_item_name">Item name</string>
+    <string name="dialog_add_item">Add an item</string>
     <!-- Strings related to login -->
     <string name="title_register">User registration</string>
     <string name="prompt_email">Email</string>
