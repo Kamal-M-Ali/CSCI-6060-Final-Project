@@ -6,12 +6,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
@@ -19,10 +23,11 @@ import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 /**
  * RecyclerViewAdapter for displaying the list of shopping items.
  */
-public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingListRecyclerAdapter.ShoppingListHolder> {
+public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingListRecyclerAdapter.ShoppingListHolder> implements Filterable {
     public static final String DEBUG_TAG = "ShoppingListRecyclerAdapter";
 
     private List<ShoppingItem> shoppingList;
+    private List<ShoppingItem> unfiltered;
     private Context context;
 
     /**
@@ -32,6 +37,7 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
      */
     public ShoppingListRecyclerAdapter(List<ShoppingItem> shoppingList, Context context) {
         this.shoppingList = shoppingList;
+        this.unfiltered = new ArrayList<>(shoppingList);
         this.context = context;
     }
 
@@ -45,6 +51,17 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
             shoppingItemText = itemView.findViewById(R.id.shoppingItemText);
             purchase = itemView.findViewById(R.id.purchaseItem);
         }
+    }
+
+    /**
+     * Should be called after every update to shoppingList to keep the state of unfiltered
+     * consistent.
+     * @param newShoppingList a list of the shopping items *after* the update
+     */
+    public void sync(List<ShoppingItem> newShoppingList)
+    {
+        unfiltered = new ArrayList<>(newShoppingList);
+
     }
 
     /**
@@ -81,7 +98,7 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
         holder.shoppingItemText.setText(context.getString(R.string.item_prefix, itemName));
         holder.purchase.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Purchase item: " + shoppingItem);
-
+            // TODO: remove from shopping list and place it in current user's shopping cart
         });
         holder.itemView.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Edit item: " + shoppingItem);
@@ -95,4 +112,45 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
      */
     @Override
     public int getItemCount() { return shoppingList.size(); }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                List<ShoppingItem> list = new ArrayList<>(unfiltered);
+                FilterResults filterResults = new FilterResults();
+                if(constraint == null || constraint.length() == 0) {
+                    filterResults.count = list.size();
+                    filterResults.values = list;
+                } else {
+                    List<ShoppingItem> resultsModel = new ArrayList<>();
+                    String searchStr = constraint.toString().toLowerCase();
+
+                    for(ShoppingItem shoppingItem : list ) {
+                        // check if either the company name or the comments contain the search string
+                        if(shoppingItem.getItemName().toLowerCase().contains(searchStr)) {
+                            resultsModel.add(shoppingItem);
+                        }
+                    }
+
+                    filterResults.count = resultsModel.size();
+                    filterResults.values = resultsModel;
+                }
+
+                return filterResults;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                shoppingList = (ArrayList<ShoppingItem>) results.values;
+                notifyDataSetChanged();
+                if(shoppingList.size() == 0) {
+                    Toast.makeText(context, "Not Found", Toast.LENGTH_LONG).show();
+                }
+            }
+        };
+    }
 }

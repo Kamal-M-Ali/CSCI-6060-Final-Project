@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -26,6 +27,7 @@ public class ShoppingListActivity extends LoggedInActivity
         implements AddShoppingItemDialog.DialogListener, EditShoppingItemDialog.DialogListener {
     public static final String DEBUG_TAG = "ShoppingListActivity";
     public static final String SHOPPING_LIST_REF = "shopping_list";
+    private SearchView searchView;
 
     private RecyclerView recyclerView;
     private ShoppingListRecyclerAdapter recyclerAdapter;
@@ -87,11 +89,31 @@ public class ShoppingListActivity extends LoggedInActivity
 
                 Log.d(DEBUG_TAG, "ValueEventListener: notifying recyclerAdapter");
                 recyclerAdapter.notifyDataSetChanged();
+                sync();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Log.d(DEBUG_TAG, "ValueEventListener: reading failed: " + databaseError.getMessage());
+            }
+        });
+
+        // setting up filtering
+        searchView = findViewById(R.id.search);
+        searchView.setQueryHint(getString(R.string.action_search));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d(DEBUG_TAG, "Query submitted");
+                return false;
+            }
+
+            // This method will implement an incremental search for the search words
+            // It is called every time there is a change in the text in the search box.
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                recyclerAdapter.getFilter().filter(newText);
+                return true;
             }
         });
     }
@@ -133,6 +155,9 @@ public class ShoppingListActivity extends LoggedInActivity
     public void updateItem(int position, ShoppingItem item) {
         Log.d(DEBUG_TAG, "Update item: " + item);
 
+        shoppingList.set(position, item);
+        sync();
+
         DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
 
         dbr.child(item.getKey()).child("itemName").setValue(item.getItemName())
@@ -160,6 +185,9 @@ public class ShoppingListActivity extends LoggedInActivity
     public void deleteItem(int position, ShoppingItem item) {
         Log.d(DEBUG_TAG, "Delete item: " + item);
 
+        shoppingList.remove(position);
+        sync();
+
         DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
 
         dbr.child(item.getKey()).removeValue()
@@ -177,5 +205,14 @@ public class ShoppingListActivity extends LoggedInActivity
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    /**
+     * This method syncs the recycler adapter with the new shopping list and refilters the contents
+     * in case the user is mid-search while updating/deleting.
+     */
+    private void sync() {
+        recyclerAdapter.sync(shoppingList);
+        recyclerAdapter.getFilter().filter(searchView.getQuery());
     }
 }
