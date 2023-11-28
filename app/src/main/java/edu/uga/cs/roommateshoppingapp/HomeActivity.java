@@ -20,10 +20,9 @@ public class HomeActivity extends LoggedInActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(DEBUG_TAG, "HomeActivity.onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
-
-        Log.d(DEBUG_TAG, "HomeActivity.onCreate()");
 
         // defining views
         Button shoppingList = findViewById(R.id.shoppingList);

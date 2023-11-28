@@ -98,7 +98,10 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
         holder.shoppingItemText.setText(context.getString(R.string.item_prefix, itemName));
         holder.purchase.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Purchase item: " + shoppingItem);
-            // TODO: remove from shopping list and place it in current user's shopping cart
+            /** TODO: remove from shopping list and place it in current user's shopping cart
+             * can remove like in deleteItem()
+             */
+            // TODO:
         });
         holder.itemView.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Edit item: " + shoppingItem);
@@ -148,7 +151,7 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
                 shoppingList = (ArrayList<ShoppingItem>) results.values;
                 notifyDataSetChanged();
                 if(shoppingList.size() == 0) {
-                    Toast.makeText(context, "Not Found", Toast.LENGTH_LONG).show();
+                    Toast.makeText(context, "Not Found", Toast.LENGTH_SHORT).show();
                 }
             }
         };

@@ -42,10 +42,9 @@ public class SettingsActivity extends LoggedInActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(DEBUG_TAG, "SettingsActivity.onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
-        Log.d(DEBUG_TAG, "SettingsActivity.onCreate()");
 
         // descendant activity, enable up button
         ActionBar ab = getSupportActionBar();

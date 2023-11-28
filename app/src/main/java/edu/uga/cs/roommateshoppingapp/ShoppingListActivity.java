@@ -6,6 +6,7 @@ import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.SearchView;
@@ -45,6 +46,7 @@ public class ShoppingListActivity extends LoggedInActivity
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(DEBUG_TAG, "ShoppingListActivity.onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_list);
 
@@ -70,11 +72,12 @@ public class ShoppingListActivity extends LoggedInActivity
 
         recyclerAdapter = new ShoppingListRecyclerAdapter(shoppingList, ShoppingListActivity.this);
         recyclerView.setAdapter(recyclerAdapter);
-
         database = FirebaseDatabase.getInstance();
         DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
 
-        dbr.addValueEventListener(new ValueEventListener() {
+        // initialize the RecyclerView
+        dbr.addListenerForSingleValueEvent(new ValueEventListener() {
+            @SuppressLint("NotifyDataSetChanged")
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 shoppingList.clear();
@@ -125,26 +128,28 @@ public class ShoppingListActivity extends LoggedInActivity
     public void addItem(ShoppingItem shoppingItem) {
         Log.d(DEBUG_TAG, "Add item: " + shoppingItem);
 
-        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
+        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF).push();
+        dbr.setValue(shoppingItem)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Add item success
+                        shoppingItem.setKey(dbr.getKey());
+                        shoppingList.add(shoppingItem);
+                        sync();
+                        recyclerAdapter.notifyItemInserted(shoppingList.size());
+                        recyclerView.post(() -> recyclerView.smoothScrollToPosition(shoppingList.size() - 1));
 
-        dbr.push().setValue(shoppingItem)
-                .addOnSuccessListener(aVoid -> {
-                    // Reposition the RecyclerView to show the ShoppingItem most recently added (as the last item on the list).
-                    // Use of the post method is needed to wait until the RecyclerView is rendered, and only then
-                    // reposition the item into view (show the last item on the list).
-                    // the post method adds the argument (Runnable) to the message queue to be executed
-                    // by Android on the main UI thread. It will be done *after* the setAdapter call
-                    // updates the list items, so the repositioning to the last item will take place
-                    // on the complete list of items.
-                    recyclerView.post(() -> recyclerView.smoothScrollToPosition(shoppingList.size() - 1));
-
-                    Log.d(DEBUG_TAG, "Shopping item saved: " + shoppingItem);
-                    // Show a quick confirmation
-                    Toast.makeText(getApplicationContext(), "Shopping item created for " + shoppingItem.getItemName(),
-                            Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> Toast.makeText( getApplicationContext(), "Failed to create a shopping item for " + shoppingItem.getItemName(),
-                        Toast.LENGTH_SHORT).show());
+                        Log.d(DEBUG_TAG, "setValue: success");
+                        // Show a quick confirmation
+                        Toast.makeText(getApplicationContext(), "Shopping item created for " + shoppingItem.getItemName(),
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        // If add item fails, display a message to the user.
+                        Log.w(DEBUG_TAG, "setValue: failure", task.getException());
+                        Toast.makeText(getApplicationContext(), "Update item failed.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     /**
@@ -155,21 +160,21 @@ public class ShoppingListActivity extends LoggedInActivity
     public void updateItem(int position, ShoppingItem item) {
         Log.d(DEBUG_TAG, "Update item: " + item);
 
-        shoppingList.set(position, item);
-        sync();
+        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF).child(item.getKey());
 
-        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
-
-        dbr.child(item.getKey()).child("itemName").setValue(item.getItemName())
+        dbr.child("itemName").setValue(item.getItemName())
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // Delete item success
+                        // Update item success
+                        shoppingList.set(position, item);
+                        sync();
+                        recyclerAdapter.notifyItemChanged(position);
+
                         Log.d(DEBUG_TAG, "setValue: success");
                         Toast.makeText(getApplicationContext(),
                                 "Updated item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
-                        recyclerAdapter.notifyItemChanged(position);
                     } else {
-                        // If delete item fails, display a message to the user.
+                        // If update item fails, display a message to the user.
                         Log.w(DEBUG_TAG, "setValue: failure", task.getException());
                         Toast.makeText(getApplicationContext(), "Update item failed.",
                                 Toast.LENGTH_SHORT).show();
@@ -185,19 +190,19 @@ public class ShoppingListActivity extends LoggedInActivity
     public void deleteItem(int position, ShoppingItem item) {
         Log.d(DEBUG_TAG, "Delete item: " + item);
 
-        shoppingList.remove(position);
-        sync();
+        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF).child(item.getKey());
 
-        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
-
-        dbr.child(item.getKey()).removeValue()
+        dbr.removeValue()
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Delete item success
+                        shoppingList.remove(position);
+                        sync();
+                        recyclerAdapter.notifyItemRemoved(position);
+
                         Log.d(DEBUG_TAG, "removeValue: success");
                         Toast.makeText(getApplicationContext(),
                                 "Deleted item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
-                        recyclerAdapter.notifyItemRemoved(position);
                     } else {
                         // If delete item fails, display a message to the user.
                         Log.w(DEBUG_TAG, "removeValue: failure", task.getException());

@@ -20,9 +20,8 @@ public class LoggedInActivity extends MenuActivity {
 
     @Override
     protected  void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
         Log.d(DEBUG_TAG, "LoggedInActivity.onCreate()");
+        super.onCreate(savedInstanceState);
 
         // ancestor activity, disable up button
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -33,7 +32,7 @@ public class LoggedInActivity extends MenuActivity {
                 ab.setTitle(getString(R.string.account_prefix, user.getEmail()));
             }
         } else {
-            Log.e(DEBUG_TAG, "User not found in logged-in activity, closing app.");
+            Log.e(DEBUG_TAG, "User not found in logged-in activity.");
             finish();
         }
 
@@ -61,12 +60,6 @@ public class LoggedInActivity extends MenuActivity {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
             Log.d(DEBUG_TAG, ".onStop(): removed auth state listener");
-        }
-
-
-        if (isFinishing()) {
-            FirebaseAuth.getInstance().signOut();
-            Log.d(DEBUG_TAG, ".onStop(): logged out user");
         }
     }
 }

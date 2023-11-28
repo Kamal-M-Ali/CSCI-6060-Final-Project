@@ -14,6 +14,7 @@ import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
 import com.firebase.ui.auth.IdpResponse;
 import com.firebase.ui.auth.data.model.FirebaseAuthUIAuthenticationResult;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,10 +37,14 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(DEBUG_TAG, R.string.app_name + ": MainActivity.onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.d(DEBUG_TAG, R.string.app_name + ": MainActivity.onCreate()");
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        if (firebaseAuth.getCurrentUser() != null) {
+            firebaseAuth.signOut(); // log out the old user
+        }
 
         // ancestor activity, disable up button
         ActionBar ab = getSupportActionBar();
