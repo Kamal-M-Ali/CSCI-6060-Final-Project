@@ -13,10 +13,15 @@
     <string name="action_view_list">Shopping list</string>
     <string name="action_view_cart">My cart</string>
     <string name="action_settle_cost">Settle the cost</string>
+    <string name="action_settings">Settings</string>
     <!-- Strings related to shopping list -->
     <string name="desc_floating_btn">Add a new shopping item</string>
     <string name="action_enter_item_name">Item name</string>
     <string name="dialog_add_item">Add an item</string>
+    <string name="action_search">Search for an item</string>
+    <!-- String related to settings -->
+    <string name="action_delete_account">Delete account</string>
+    <string name="participating_text">Participating roommates</string>
     <!-- Strings related to login -->
     <string name="title_register">User registration</string>
     <string name="prompt_email">Email</string>
