@@ -70,7 +70,7 @@ public class EditShoppingItemDialog extends DialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setView(layout);
 
-        builder.setTitle(R.string.dialog_add_item);
+        builder.setTitle(R.string.dialog_edit_item);
         builder.setPositiveButton(android.R.string.ok, new EditShoppingItemDialog.SaveItemListener());
         builder.setNeutralButton(R.string.delete, new EditShoppingItemDialog.DeleteItemListener());
         builder.setNegativeButton(android.R.string.cancel, (dialog, whichButton) -> {
