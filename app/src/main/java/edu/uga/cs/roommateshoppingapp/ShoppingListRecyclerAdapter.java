@@ -5,9 +5,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -36,10 +38,12 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
     // ShoppingListHolder subclass
     static class ShoppingListHolder extends RecyclerView.ViewHolder {
         TextView shoppingItemText;
+        Button purchase;
 
         public ShoppingListHolder(View itemView) {
             super(itemView);
             shoppingItemText = itemView.findViewById(R.id.shoppingItemText);
+            purchase = itemView.findViewById(R.id.purchaseItem);
         }
     }
 
@@ -73,11 +77,16 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
         String key = shoppingItem.getKey();
         String itemName = shoppingItem.getItemName();
 
-        holder.shoppingItemText.setText(itemName);
-        holder.itemView.setOnClickListener(v -> {
-            System.out.println("TEMP");
-            //EditJobLeadDialogFragment editJobFragment = EditJobLeadDialogFragment.newInstance(holder.getAdapterPosition(), key, company);
-            //editJobFragment.show(((AppCompatActivity)context).getSupportFragmentManager(), null);
+        // setting up view
+        holder.shoppingItemText.setText(context.getString(R.string.item_prefix, itemName));
+        holder.purchase.setOnClickListener(view -> {
+            Log.d(DEBUG_TAG, "Purchase item: " + shoppingItem);
+
+        });
+        holder.itemView.setOnClickListener(view -> {
+            Log.d(DEBUG_TAG, "Edit item: " + shoppingItem);
+            EditShoppingItemDialog editShoppingItemDialog = EditShoppingItemDialog.newInstance(holder.getAdapterPosition(), key, itemName);
+            editShoppingItemDialog.show(((AppCompatActivity) context).getSupportFragmentManager(), null);
         });
     }
 

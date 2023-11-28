@@ -5,9 +5,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 
-
 /**
- * The main class for signed-in users. The app navigation class.
+ * The main class for signed-in users. Used to navigate to most screens.
  */
 public class HomeActivity extends LoggedInActivity {
     public static final String DEBUG_TAG = "HomeActivity";
@@ -30,7 +29,6 @@ public class HomeActivity extends LoggedInActivity {
         Button shoppingList = findViewById(R.id.shoppingList);
         Button cart = findViewById(R.id.cart);
         Button settle = findViewById(R.id.settle);
-        Button settings = findViewById(R.id.settings);
 
         // setting up button listeners
         shoppingList.setOnClickListener(view -> {
@@ -40,17 +38,12 @@ public class HomeActivity extends LoggedInActivity {
 
         cart.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "cart.onClick(): starting view cart activity");
-            // TODO: startActivty(...)
+            startActivity(new Intent(this.getApplicationContext(), CartActivity.class));
         });
 
         settle.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "settle.onClick(): starting settle the cost activity");
             // TODO: startActivty(...)
-        });
-
-        settings.setOnClickListener(view -> {
-            Log.d(DEBUG_TAG, "settings.onClick(): starting settings activity");
-            startActivity(new Intent(this.getApplicationContext(), SettingsActivity.class));
         });
     }
 }

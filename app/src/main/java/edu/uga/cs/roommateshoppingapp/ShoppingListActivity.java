@@ -22,8 +22,8 @@ import java.util.List;
 
 import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 
-
-public class ShoppingListActivity extends LoggedInActivity implements AddShoppingItemDialog.DialogListener {
+public class ShoppingListActivity extends LoggedInActivity
+        implements AddShoppingItemDialog.DialogListener, EditShoppingItemDialog.DialogListener {
     public static final String DEBUG_TAG = "ShoppingListActivity";
     public static final String SHOPPING_LIST_REF = "shopping_list";
 
@@ -52,12 +52,14 @@ public class ShoppingListActivity extends LoggedInActivity implements AddShoppin
             ab.setDisplayHomeAsUpEnabled(true);
 
 
+        // setting up floating action bar for adding a new shopping item
         FloatingActionButton floatingButton = findViewById(R.id.floatingActionButton);
         floatingButton.setOnClickListener(v -> {
             DialogFragment newFragment = new AddShoppingItemDialog();
             newFragment.show(getSupportFragmentManager(), null);
         });
 
+        // show shopping items
         shoppingList = new ArrayList<>();
         recyclerView = findViewById(R.id.recyclerView);
 
@@ -76,6 +78,7 @@ public class ShoppingListActivity extends LoggedInActivity implements AddShoppin
                 shoppingList.clear();
                 for(DataSnapshot postSnapshot: snapshot.getChildren()) {
                     ShoppingItem shoppingItem = postSnapshot.getValue(ShoppingItem.class);
+                    assert shoppingItem != null;
                     shoppingItem.setKey(postSnapshot.getKey());
                     shoppingList.add(shoppingItem);
                     Log.d(DEBUG_TAG, "ValueEventListener: added: " + shoppingItem);
@@ -94,11 +97,12 @@ public class ShoppingListActivity extends LoggedInActivity implements AddShoppin
     }
 
     /**
-     * Callback for AddShoppingItemDialog, will add a new shopping item to the shopping list.
+     * Implement method for AddShoppingItemDialog, will add a new shopping item to the shopping list.
      * @param shoppingItem shopping item to add
      */
-    public void onDialogPositiveClick(ShoppingItem shoppingItem) {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
+    public void addItem(ShoppingItem shoppingItem) {
+        Log.d(DEBUG_TAG, "Add item: " + shoppingItem);
+
         DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
 
         dbr.push().setValue(shoppingItem)
@@ -119,5 +123,59 @@ public class ShoppingListActivity extends LoggedInActivity implements AddShoppin
                 })
                 .addOnFailureListener(e -> Toast.makeText( getApplicationContext(), "Failed to create a shopping item for " + shoppingItem.getItemName(),
                         Toast.LENGTH_SHORT).show());
+    }
+
+    /**
+     * Implement update method for EditShoppingItemDialog, will update a shopping item in the shopping list.
+     * @param item shopping item to update
+     */
+    @Override
+    public void updateItem(int position, ShoppingItem item) {
+        Log.d(DEBUG_TAG, "Update item: " + item);
+
+        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
+
+        dbr.child(item.getKey()).child("itemName").setValue(item.getItemName())
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Delete item success
+                        Log.d(DEBUG_TAG, "setValue: success");
+                        Toast.makeText(getApplicationContext(),
+                                "Updated item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
+                        recyclerAdapter.notifyItemChanged(position);
+                    } else {
+                        // If delete item fails, display a message to the user.
+                        Log.w(DEBUG_TAG, "setValue: failure", task.getException());
+                        Toast.makeText(getApplicationContext(), "Update item failed.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    /**
+     * Implement delete method for EditShoppingItemDialog, will delete a shopping item in the shopping list.
+     * @param item shopping item to delete
+     */
+    @Override
+    public void deleteItem(int position, ShoppingItem item) {
+        Log.d(DEBUG_TAG, "Delete item: " + item);
+
+        DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
+
+        dbr.child(item.getKey()).removeValue()
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // Delete item success
+                        Log.d(DEBUG_TAG, "removeValue: success");
+                        Toast.makeText(getApplicationContext(),
+                                "Deleted item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
+                        recyclerAdapter.notifyItemRemoved(position);
+                    } else {
+                        // If delete item fails, display a message to the user.
+                        Log.w(DEBUG_TAG, "removeValue: failure", task.getException());
+                        Toast.makeText(getApplicationContext(), "Delete item failed.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }

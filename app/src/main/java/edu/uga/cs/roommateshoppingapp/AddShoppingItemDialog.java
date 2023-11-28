@@ -18,7 +18,7 @@ public class AddShoppingItemDialog extends DialogFragment {
     private EditText addItem;
 
     public interface DialogListener {
-        public void onDialogPositiveClick(ShoppingItem shoppingItem);
+        void addItem(ShoppingItem shoppingItem);
     }
 
     @NonNull
@@ -53,7 +53,7 @@ public class AddShoppingItemDialog extends DialogFragment {
             DialogListener listener = (DialogListener) getActivity();
 
             assert listener != null;
-            listener.onDialogPositiveClick(shoppingItem);
+            listener.addItem(shoppingItem);
             dismiss();
         }
     }

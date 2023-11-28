@@ -30,9 +30,10 @@ public class LoggedInActivity extends MenuActivity {
             ActionBar ab = getSupportActionBar();
             if (ab != null) {
                 ab.setDisplayHomeAsUpEnabled(false);
-                ab.setTitle(getString(R.string.account_prefix) + " " + user.getEmail());
+                ab.setTitle(getString(R.string.account_prefix, user.getEmail()));
             }
         } else {
+            Log.e(DEBUG_TAG, "User not found in logged-in activity, closing app.");
             finish();
         }
 

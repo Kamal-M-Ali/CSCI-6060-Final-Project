@@ -1,7 +1,7 @@
 package edu.uga.cs.roommateshoppingapp.data;
 
 /**
- * A Java POJO class representing a shopping list.
+ * A Java POJO class representing a shopping item.
  */
 public class ShoppingItem {
     private String key;

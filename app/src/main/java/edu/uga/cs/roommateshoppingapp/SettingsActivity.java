@@ -1,10 +1,26 @@
 package edu.uga.cs.roommateshoppingapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import edu.uga.cs.roommateshoppingapp.data.Account;
 
 /**
  * Settings class for allowing the user to delete their account and also review participating
@@ -12,6 +28,10 @@ import android.util.Log;
  */
 public class SettingsActivity extends LoggedInActivity {
     public static final String DEBUG_TAG = "SettingsActivity";
+
+    private RoommatesRecyclerAdapter recyclerAdapter;
+
+    private List<Account> accountList;
 
     /**
      * Called at the start of the activity's lifecycle. Does the main initializing of the view.
@@ -30,8 +50,54 @@ public class SettingsActivity extends LoggedInActivity {
         // descendant activity, enable up button
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
-            ab.setTitle("Settings");
             ab.setDisplayHomeAsUpEnabled(true);
         }
+
+        // setting up delete account event listener
+        Button delete = findViewById(R.id.deleteAccount);
+        delete.setOnClickListener(view -> {
+            Log.d(DEBUG_TAG, "delete.onClick()");
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                Log.d(DEBUG_TAG, "deleting firebase user");
+                user.delete();
+            }
+        });
+
+        // show list of participating roommates
+        accountList = new ArrayList<>();
+        RecyclerView recyclerView = findViewById(R.id.roommates);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        recyclerAdapter = new RoommatesRecyclerAdapter(accountList, SettingsActivity.this);
+        recyclerView.setAdapter(recyclerAdapter);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference dbr = database.getReference(CartActivity.ROOMMATE_CARTS_REF);
+
+        dbr.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                accountList.clear();
+                for(DataSnapshot postSnapshot: snapshot.getChildren()) {
+                    Account roommate = postSnapshot.getValue(Account.class);
+                    assert roommate != null;
+                    roommate.setKey(postSnapshot.getKey());
+                    accountList.add(roommate);
+                    Log.d(DEBUG_TAG, "ValueEventListener: added: " + roommate);
+                    Log.d(DEBUG_TAG, "ValueEventListener: key: " + postSnapshot.getKey());
+                }
+
+                Log.d(DEBUG_TAG, "ValueEventListener: notifying recyclerAdapter");
+                recyclerAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.d(DEBUG_TAG, "ValueEventListener: reading failed: " + databaseError.getMessage());
+            }
+        });
     }
 }

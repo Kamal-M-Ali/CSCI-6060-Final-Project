@@ -26,9 +26,19 @@
                 android:id="@+id/shoppingItemText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
                 android:textColor="@color/black"
                 android:textSize="24sp"
                 android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/purchaseItem"
+                android:text="@string/action_purchase_item"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:textSize="16sp" />
 
         </LinearLayout>
 

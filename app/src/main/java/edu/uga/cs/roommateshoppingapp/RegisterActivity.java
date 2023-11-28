@@ -11,6 +11,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import edu.uga.cs.roommateshoppingapp.data.Account;
 
 /**
  * The register activity for the app. Used to create a new account for a user.
@@ -76,6 +81,7 @@ public class RegisterActivity extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(DEBUG_TAG, "createUserWithEmail: success");
                             startActivity(new Intent(this.getApplicationContext(), HomeActivity.class));
+                            addRoommateCart(firebaseAuth.getCurrentUser());
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(DEBUG_TAG, "createUserWithEmail: failure", task.getException());
@@ -84,5 +90,22 @@ public class RegisterActivity extends AppCompatActivity {
                         }
                     });
         });
+    }
+
+    /**
+     * A helper method to create a new cart for a registered user.
+     * @param user the user whose account has just been created
+     */
+    private void addRoommateCart(FirebaseUser user) {
+        if (user == null) return;
+        DatabaseReference dbr = FirebaseDatabase.getInstance().getReference(CartActivity.ROOMMATE_CARTS_REF);
+        Account roommate = new Account(user.getEmail());
+
+        dbr.push().setValue(roommate)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(DEBUG_TAG, "Roommate cart created: " + roommate);
+                })
+                .addOnFailureListener(e -> Toast.makeText( getApplicationContext(), "Failed to create a cart for " + roommate.getAccountName(),
+                        Toast.LENGTH_SHORT).show());
     }
 }

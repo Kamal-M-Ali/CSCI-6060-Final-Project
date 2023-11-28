@@ -31,10 +31,13 @@ public class MenuActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection.
         if (item.getItemId() == R.id.menu_logout) {
+            Log.d(DEBUG_TAG, "menuItemSelected: logout");
             FirebaseAuth.getInstance().signOut();
-            return true;
-        } else {
-            return super.onOptionsItemSelected(item);
-        }
+        } else if (item.getItemId() == R.id.menu_settings) {
+            Log.d(DEBUG_TAG, "menuItemSelected: settings");
+            startActivity(new Intent(this.getApplicationContext(), SettingsActivity.class));
+        } else return super.onOptionsItemSelected(item);
+
+        return true;
     }
 }
