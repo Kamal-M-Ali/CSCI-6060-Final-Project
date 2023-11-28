@@ -9,24 +9,24 @@ import java.util.Map;
 public class Account {
     private String key;
     private String accountName;
-    private Map<String, String> cart;
+    private Map<String, String> myCart;
 
     public Account() {
         this.key = null;
         this.accountName = null;
-        this.cart = null;
+        this.myCart = null;
     }
 
     public Account(String accountName) {
         this.key = null;
         this.accountName = accountName;
-        this.cart = new HashMap<>();
+        this.myCart = new HashMap<>();
     }
 
-    public Account(String accountName, Map<String, String> cart) {
+    public Account(String accountName, Map<String, String> myCart) {
         this.key = null;
         this.accountName = accountName;
-        this.cart = cart;
+        this.myCart = myCart;
     }
 
     public String getKey() {
@@ -45,11 +45,11 @@ public class Account {
         this.accountName = accountName;
     }
 
-    public Map<String, String> getCart() {
-        return cart;
+    public Map<String, String> getMyCart() {
+        return myCart;
     }
 
-    public void setCart(Map<String, String> cart) {
-        this.cart = cart;
+    public void setMyCart(Map<String, String> myCart) {
+        this.myCart = myCart;
     }
 }
