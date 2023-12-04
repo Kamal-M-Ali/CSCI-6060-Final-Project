@@ -1,6 +1,5 @@
 package edu.uga.cs.roommateshoppingapp;
 
-import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 import static edu.uga.cs.roommateshoppingapp.ShoppingListActivity.SHOPPING_LIST_REF;
 
 import android.annotation.SuppressLint;
@@ -19,12 +18,15 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executor;
 
 import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 
@@ -40,11 +42,6 @@ public class ShoppingListRecyclerAdapter
     private List<ShoppingItem> unfiltered;
     private Context context;
     private FirebaseDatabase database;
-
-    private ShoppingListActivity shoppingListActivity;
-    private CartActivity cart;
-
-
 
     /**
      * Constructor
@@ -68,17 +65,6 @@ public class ShoppingListRecyclerAdapter
             shoppingItemText = itemView.findViewById(R.id.shoppingItemText);
             purchase = itemView.findViewById(R.id.purchaseItem);
         }
-    }
-
-    /**
-     * Should be called after every update to shoppingList to keep the state of unfiltered
-     * consistent.
-     * @param newShoppingList a list of the shopping items *after* the update
-     */
-    public void sync(List<ShoppingItem> newShoppingList)
-    {
-        unfiltered = new ArrayList<>(newShoppingList);
-
     }
 
     /**
@@ -115,16 +101,48 @@ public class ShoppingListRecyclerAdapter
         // setting up view
         holder.shoppingItemText.setText(context.getString(R.string.item_prefix, itemName));
         holder.purchase.setOnClickListener(view -> {
-            Log.d(DEBUG_TAG, "Purchase item: " + shoppingItem);
-            /** TODO: remove from shopping list and place it in current user's shopping cart
-             *
-             * can remove like in deleteItem()
-             */
-            // TODO:
-            database.getReference(CartActivity.ROOMMATE_CARTS_REF).push().setValue(shoppingItem);
-            DatabaseReference item = database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey());
-            item.removeValue();
-            notifyDataSetChanged();
+            Log.d(DEBUG_TAG, "Add to cart: " + shoppingItem);
+
+            // first we need to get the user
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+            if (user != null ) {
+                // next find the cart of the user (it is automatically created on creation
+                DatabaseReference dbr = database.getReference(CartActivity.ROOMMATE_CARTS_REF);
+                Query query = dbr.orderByChild("accountName").equalTo(user.getEmail());
+
+                query.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // we have a list of values containing the users that match the query (should be 1)
+                        DataSnapshot dataSnapshot = task.getResult();
+                        if (dataSnapshot.exists() && dataSnapshot.getKey() != null) {
+                            for (DataSnapshot roommate : dataSnapshot.getChildren()) {
+                                // add the item onto the roommate's cart
+                                database.getReference(CartActivity.ROOMMATE_CARTS_REF)
+                                        .child(roommate.getKey())
+                                        .child("cart").push().setValue(shoppingItem.getItemName());
+                                database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey()).removeValue();
+                                unfiltered.remove(holder.getAdapterPosition());
+                                notifyItemRemoved(holder.getAdapterPosition());
+
+                                // inform the user
+                                Log.d(DEBUG_TAG, "setValue: success");
+                                Toast.makeText(context.getApplicationContext(),
+                                        "Added item to cart: " + shoppingItem.getItemName(), Toast.LENGTH_SHORT).show();
+                                break; // only look at the first roommate
+                            }
+                        } else {
+                            Log.e(DEBUG_TAG, "Failed to find user.");
+                        }
+                    } else {
+                        Log.w(DEBUG_TAG, "setValue: failure", task.getException());
+                        Toast.makeText(context.getApplicationContext(), "Add to cart failed.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Log.d(DEBUG_TAG, "No user found.");
+            }
 
         });
         holder.itemView.setOnClickListener(view -> {
@@ -174,17 +192,11 @@ public class ShoppingListRecyclerAdapter
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 shoppingList = (ArrayList<ShoppingItem>) results.values;
                 notifyDataSetChanged();
-                if(shoppingList.size() == 0) {
-                    Toast.makeText(context, "Not Found", Toast.LENGTH_SHORT).show();
-                }
             }
         };
     }
-    /**
-     * This method syncs the recycler adapter with the new shopping list and refilters the contents
-     * in case the user is mid-search while updating/deleting.
-     */
-    private void sync() {
-        this.sync(shoppingList);
+
+    public List<ShoppingItem> getUnfiltered() {
+        return unfiltered;
     }
 }

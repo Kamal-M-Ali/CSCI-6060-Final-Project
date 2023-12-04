@@ -21,6 +21,9 @@
     <string name="dialog_add_item">Add item</string>
     <string name="dialog_edit_item">Edit item</string>
     <string name="action_search">Search for an item</string>
+    <!-- Strings related to cart -->
+    <string name="edit_cart_text">Tap an item on the list to return it to the shopping list.</string>
+    <string name="action_check_out">Checkout</string>
     <!-- Strings related to shopping item -->
     <string name="item_prefix">Item: %s</string>
     <string name="edit_text">Tap an item on the list to edit it</string>

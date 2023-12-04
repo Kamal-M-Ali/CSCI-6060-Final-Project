@@ -1,5 +1,6 @@
 package edu.uga.cs.roommateshoppingapp;
 
+import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 import static edu.uga.cs.roommateshoppingapp.ShoppingListActivity.SHOPPING_LIST_REF;
 
 import android.content.Context;
@@ -7,64 +8,48 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.Filter;
-import android.widget.Filterable;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 
-public class CartRecyclerAdapter
-        extends RecyclerView.Adapter<CartRecyclerAdapter.CartHolder>
-        implements Filterable {
+public class CartRecyclerAdapter extends RecyclerView.Adapter<CartRecyclerAdapter.CartListHolder> {
     public static final String DEBUG_TAG = "CartRecyclerAdapter";
     private FirebaseDatabase database;
-    private List<ShoppingItem> shoppingList;
-    private List<ShoppingItem> unfiltered;
+    private List<ShoppingItem> myCart;
     private Context context;
 
     /**
      * Constructor
-     * @param shoppingList a list of ShoppingItem POJO objects
+     * @param myCart a list of ShoppingItem POJO objects
      * @param context the context of the caller (used for editing dialog popup)
      */
-    public CartRecyclerAdapter(List<ShoppingItem> shoppingList, Context context) {
-        this.shoppingList = shoppingList;
-        this.unfiltered = new ArrayList<>(shoppingList);
+    public CartRecyclerAdapter(List<ShoppingItem> myCart, Context context) {
+        this.myCart = myCart;
         this.context = context;
+        this.database = FirebaseDatabase.getInstance();
     }
 
     // ShoppingListHolder subclass
-    static class CartHolder extends RecyclerView.ViewHolder {
-        TextView shoppingItemText;
-        Button purchase;
+    static class CartListHolder extends RecyclerView.ViewHolder {
+        TextView cartItemText;
 
-        public CartHolder(View itemView) {
+        public CartListHolder(View itemView) {
             super(itemView);
-            shoppingItemText = itemView.findViewById(R.id.shoppingItemText);
-            purchase = itemView.findViewById(R.id.purchaseItem);
+            cartItemText = itemView.findViewById(R.id.cartItemText);
         }
-    }
-    /**
-     * Should be called after every update to shoppingList to keep the state of unfiltered
-     * consistent.
-     * @param newShoppingList a list of the shopping items *after* the update
-     */
-    public void sync(List<ShoppingItem> newShoppingList)
-    {
-        unfiltered = new ArrayList<>(newShoppingList);
-
     }
 
     /**
@@ -73,13 +58,13 @@ public class CartRecyclerAdapter
      *               an adapter position.
      * @param viewType The view type of the new View.
      *
-     * @return a ShoppingListHolder object.
+     * @return a CartListHolder object.
      */
     @NonNull
     @Override
-    public CartRecyclerAdapter.CartHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.shopping_item, parent, false);
-        return new CartRecyclerAdapter.CartHolder(view);
+    public CartListHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.cart_item, parent, false);
+        return new CartListHolder(view);
     }
 
     /**
@@ -89,8 +74,8 @@ public class CartRecyclerAdapter
      * @param position The position of the item within the adapter's data set.
      */
     @Override
-    public void onBindViewHolder(CartRecyclerAdapter.CartHolder holder, int position) {
-        ShoppingItem shoppingItem = shoppingList.get(position);
+    public void onBindViewHolder(CartListHolder holder, int position) {
+        ShoppingItem shoppingItem = myCart.get(position);
 
         Log.d(DEBUG_TAG, "onBindViewHolder: " + shoppingItem);
 
@@ -98,23 +83,50 @@ public class CartRecyclerAdapter
         String itemName = shoppingItem.getItemName();
 
         // setting up view
-        holder.shoppingItemText.setText(context.getString(R.string.item_prefix, itemName));
-        holder.purchase.setOnClickListener(view -> {
-            Log.d(DEBUG_TAG, "Purchase item: " + shoppingItem);
-            /** TODO: remove from cart and place it in current user's purchased
-             * can remove like in deleteItem()
-             */
-            // TODO:
-            //database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey()).child("shopping_list").push().setValue(shoppingItem);
-            database.getReference(SHOPPING_LIST_REF).push().setValue(shoppingItem);
-            DatabaseReference item  = database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey());
-            item.removeValue();
-            notifyDataSetChanged();
-        });
+        holder.cartItemText.setText(context.getString(R.string.item_prefix, itemName));
         holder.itemView.setOnClickListener(view -> {
-            Log.d(DEBUG_TAG, "Edit item: " + shoppingItem);
-            EditShoppingItemDialog editShoppingItemDialog = EditShoppingItemDialog.newInstance(holder.getAdapterPosition(), key, itemName);
-            editShoppingItemDialog.show(((AppCompatActivity) context).getSupportFragmentManager(), null);
+            Log.d(DEBUG_TAG, "Remove item: " + shoppingItem);
+
+            // first we need to get the user
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+            if (user != null ) {
+                // next find the cart of the user (it is automatically created on creation
+                DatabaseReference dbr = database.getReference(CartActivity.ROOMMATE_CARTS_REF);
+                Query query = dbr.orderByChild("accountName").equalTo(user.getEmail());
+
+                query.get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // we have a list of values containing the users that match the query (should be 1)
+                        DataSnapshot dataSnapshot = task.getResult();
+                        if (dataSnapshot.exists() && dataSnapshot.getKey() != null) {
+                            for (DataSnapshot roommate : dataSnapshot.getChildren()) {
+                                // remove the item from the roommate's cart
+                                database.getReference(CartActivity.ROOMMATE_CARTS_REF)
+                                        .child(roommate.getKey())
+                                        .child("cart").child(key).removeValue();
+                                database.getReference(SHOPPING_LIST_REF).push().setValue(shoppingItem.getItemName());
+                                myCart.remove(holder.getAdapterPosition());
+                                notifyItemRemoved(holder.getAdapterPosition());
+
+                                // inform the user
+                                Log.d(DEBUG_TAG, "setValue: success");
+                                Toast.makeText(context.getApplicationContext(),
+                                        "Removed from cart: " + shoppingItem.getItemName(), Toast.LENGTH_SHORT).show();
+                                break; // only look at the first roommate
+                            }
+                        } else {
+                            Log.e(DEBUG_TAG, "Failed to find user.");
+                        }
+                    } else {
+                        Log.w(DEBUG_TAG, "setValue: failure", task.getException());
+                        Toast.makeText(context.getApplicationContext(), "Remove from cart failed.",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } else {
+                Log.d(DEBUG_TAG, "No user found.");
+            }
         });
     }
 
@@ -122,43 +134,5 @@ public class CartRecyclerAdapter
      * @return the number of items in the shopping list
      */
     @Override
-    public int getItemCount() { return shoppingList.size(); }
-
-    @Override
-    public Filter getFilter() {
-        return new Filter() {
-
-            @Override
-            protected FilterResults performFiltering(CharSequence constraint) {
-                List<ShoppingItem> list = new ArrayList<>(unfiltered);
-                FilterResults filterResults = new FilterResults();
-                if(constraint == null || constraint.length() == 0) {
-                    filterResults.count = list.size();
-                    filterResults.values = list;
-                } else {
-                    List<ShoppingItem> resultsModel = new ArrayList<>();
-                    String searchStr = constraint.toString().toLowerCase();
-
-                    for(ShoppingItem shoppingItem : list ) {
-                        // check if either the company name or the comments contain the search string
-                        if(shoppingItem.getItemName().toLowerCase().contains(searchStr)) {
-                            resultsModel.add(shoppingItem);
-                        }
-                    }
-                    filterResults.count = resultsModel.size();
-                    filterResults.values = resultsModel;
-                }
-                return filterResults;
-            }
-            @SuppressWarnings("unchecked")
-            @Override
-            protected void publishResults(CharSequence constraint, FilterResults results) {
-                shoppingList = (ArrayList<ShoppingItem>) results.values;
-                notifyDataSetChanged();
-                if(shoppingList.size() == 0) {
-                    Toast.makeText(context, "Not Found", Toast.LENGTH_SHORT).show();
-                }
-            }
-        };
-    }
+    public int getItemCount() { return myCart.size(); }
 }
