@@ -56,9 +56,9 @@ public class ShoppingListActivity extends LoggedInActivity
             ab.setDisplayHomeAsUpEnabled(true);
 
 
-        // setting up floating action bar for adding a new shopping item
-        FloatingActionButton floatingButton = findViewById(R.id.floatingActionButton);
-        floatingButton.setOnClickListener(v -> {
+            // setting up floating action bar for adding a new shopping item
+            FloatingActionButton floatingButton = findViewById(R.id.floatingActionButton);
+            floatingButton.setOnClickListener(v -> {
             DialogFragment newFragment = new AddShoppingItemDialog();
             newFragment.show(getSupportFragmentManager(), null);
         });

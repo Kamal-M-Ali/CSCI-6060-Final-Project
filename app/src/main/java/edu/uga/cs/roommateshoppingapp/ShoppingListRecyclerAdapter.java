@@ -1,5 +1,9 @@
 package edu.uga.cs.roommateshoppingapp;
 
+import static com.firebase.ui.auth.AuthUI.getApplicationContext;
+import static edu.uga.cs.roommateshoppingapp.ShoppingListActivity.SHOPPING_LIST_REF;
+
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,20 +19,32 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 
 /**
  * RecyclerViewAdapter for displaying the list of shopping items.
  */
-public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingListRecyclerAdapter.ShoppingListHolder> implements Filterable {
+public class ShoppingListRecyclerAdapter
+        extends RecyclerView.Adapter<ShoppingListRecyclerAdapter.ShoppingListHolder>
+        implements Filterable {
     public static final String DEBUG_TAG = "ShoppingListRecyclerAdapter";
 
     private List<ShoppingItem> shoppingList;
     private List<ShoppingItem> unfiltered;
     private Context context;
+    private FirebaseDatabase database;
+
+    private ShoppingListActivity shoppingListActivity;
+    private CartActivity cart;
+
+
 
     /**
      * Constructor
@@ -39,6 +55,7 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
         this.shoppingList = shoppingList;
         this.unfiltered = new ArrayList<>(shoppingList);
         this.context = context;
+        this.database = FirebaseDatabase.getInstance();
     }
 
     // ShoppingListHolder subclass
@@ -85,6 +102,7 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
      *        item at the given position in the data set.
      * @param position The position of the item within the adapter's data set.
      */
+    @SuppressLint("RestrictedApi")
     @Override
     public void onBindViewHolder(ShoppingListHolder holder, int position) {
         ShoppingItem shoppingItem = shoppingList.get(position);
@@ -102,6 +120,12 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
              * can remove like in deleteItem()
              */
             // TODO:
+            DatabaseReference item = database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey());
+            item.removeValue();
+            database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey()).
+                    child("carts").push().setValue(shoppingItem);
+            notifyDataSetChanged();
+
         });
         holder.itemView.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Edit item: " + shoppingItem);
@@ -155,5 +179,12 @@ public class ShoppingListRecyclerAdapter extends RecyclerView.Adapter<ShoppingLi
                 }
             }
         };
+    }
+    /**
+     * This method syncs the recycler adapter with the new shopping list and refilters the contents
+     * in case the user is mid-search while updating/deleting.
+     */
+    private void sync() {
+        this.sync(shoppingList);
     }
 }
