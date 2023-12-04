@@ -25,6 +25,7 @@
     <string name="item_prefix">Item: %s</string>
     <string name="edit_text">Tap an item on the list to edit it</string>
     <string name="action_purchase_item">Add to cart</string>
+    <string name="action_return_item">Return to shopping list</string>
     <!-- String related to settings -->
     <string name="action_delete_account">Delete account</string>
     <string name="participating_text">Participating roommates</string>

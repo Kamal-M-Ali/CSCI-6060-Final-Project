@@ -28,7 +28,7 @@ import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 public class CartRecyclerAdapter
         extends RecyclerView.Adapter<CartRecyclerAdapter.CartHolder>
         implements Filterable {
-    public static final String DEBUG_TAG = "ShoppingListRecyclerAdapter";
+    public static final String DEBUG_TAG = "CartRecyclerAdapter";
     private FirebaseDatabase database;
     private List<ShoppingItem> shoppingList;
     private List<ShoppingItem> unfiltered;
@@ -105,8 +105,8 @@ public class CartRecyclerAdapter
              * can remove like in deleteItem()
              */
             // TODO:
-            database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey()).
-                    child("shopping_list").push().setValue(shoppingItem);
+            //database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey()).child("shopping_list").push().setValue(shoppingItem);
+            database.getReference(SHOPPING_LIST_REF).push().setValue(shoppingItem);
             DatabaseReference item  = database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey());
             item.removeValue();
             notifyDataSetChanged();

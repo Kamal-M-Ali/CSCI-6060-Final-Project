@@ -30,7 +30,7 @@ public class CartActivity extends LoggedInActivity
     public static final String ROOMMATE_CARTS_REF = "cart";
     private SearchView searchView;
     private RecyclerView recyclerView;
-    private ShoppingListRecyclerAdapter recyclerAdapter;
+    private CartRecyclerAdapter recyclerAdapter;
     private List<ShoppingItem> shoppingList;
     private FirebaseDatabase database;
 
@@ -59,7 +59,7 @@ public class CartActivity extends LoggedInActivity
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
-        recyclerAdapter = new ShoppingListRecyclerAdapter(shoppingList, CartActivity.this);
+        recyclerAdapter = new CartRecyclerAdapter(shoppingList, CartActivity.this);
         recyclerView.setAdapter(recyclerAdapter);
         database = FirebaseDatabase.getInstance();
         DatabaseReference dbr = database.getReference(ROOMMATE_CARTS_REF);
