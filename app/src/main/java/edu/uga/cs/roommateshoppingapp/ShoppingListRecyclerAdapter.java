@@ -117,13 +117,17 @@ public class ShoppingListRecyclerAdapter
         holder.purchase.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Purchase item: " + shoppingItem);
             /** TODO: remove from shopping list and place it in current user's shopping cart
+             *
              * can remove like in deleteItem()
              */
-            // TODO:
+            // TODO:Items can be deleted from list and moved to cart but items in cart have null
+            //identifier. Also, somehow users are being removed during one or both of those actions
+            //however the app still remembers the users even though they no longer show up in the app
+            //or the database
+            database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey()).
+                    child("cart").push().setValue(shoppingItem);
             DatabaseReference item = database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey());
             item.removeValue();
-            database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey()).
-                    child("carts").push().setValue(shoppingItem);
             notifyDataSetChanged();
 
         });
