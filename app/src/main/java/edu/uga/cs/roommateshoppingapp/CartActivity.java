@@ -27,7 +27,7 @@ import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 public class CartActivity extends LoggedInActivity
         implements AddShoppingItemDialog.DialogListener, EditShoppingItemDialog.DialogListener {
     public static final String DEBUG_TAG = "CartActivity";
-    public static final String ROOMMATE_CARTS_REF = "carts";
+    public static final String ROOMMATE_CARTS_REF = "cart";
     private SearchView searchView;
     private RecyclerView recyclerView;
     private ShoppingListRecyclerAdapter recyclerAdapter;
@@ -45,12 +45,11 @@ public class CartActivity extends LoggedInActivity
         if (ab != null)
             ab.setDisplayHomeAsUpEnabled(true);
 
-
         // setting up floating action bar for adding a new shopping item
         FloatingActionButton floatingButton = findViewById(R.id.floatingActionButton);
         floatingButton.setOnClickListener(v -> {
-            //DialogFragment newFragment = new AddShoppingItemDialog();
-            DialogFragment newFragment = new EditShoppingItemDialog();
+            DialogFragment newFragment = new AddShoppingItemDialog();
+            //DialogFragment newFragment = new EditShoppingItemDialog();
             newFragment.show(getSupportFragmentManager(), null);
         });
         // show items
@@ -117,7 +116,6 @@ public class CartActivity extends LoggedInActivity
      */
     public void addItem(ShoppingItem shoppingItem) {
         Log.d(DEBUG_TAG, "Add item: " + shoppingItem);
-
         DatabaseReference dbr = database.getReference(ROOMMATE_CARTS_REF).push();
         dbr.setValue(shoppingItem)
                 .addOnCompleteListener(this, task -> {

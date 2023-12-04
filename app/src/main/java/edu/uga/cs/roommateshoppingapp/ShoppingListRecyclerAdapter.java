@@ -124,8 +124,8 @@ public class ShoppingListRecyclerAdapter
             //identifier. Also, somehow users are being removed during one or both of those actions
             //however the app still remembers the users even though they no longer show up in the app
             //or the database
-            database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey()).
-                    child("cart").push().setValue(shoppingItem);
+            //database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey()).child("cart").push().setValue(shoppingItem);
+            database.getReference(CartActivity.ROOMMATE_CARTS_REF).push().setValue(shoppingItem);
             DatabaseReference item = database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey());
             item.removeValue();
             notifyDataSetChanged();

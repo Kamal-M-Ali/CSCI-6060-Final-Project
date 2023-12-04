@@ -1,5 +1,7 @@
 package edu.uga.cs.roommateshoppingapp;
 
+import static edu.uga.cs.roommateshoppingapp.ShoppingListActivity.SHOPPING_LIST_REF;
+
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +17,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +29,7 @@ public class CartRecyclerAdapter
         extends RecyclerView.Adapter<CartRecyclerAdapter.CartHolder>
         implements Filterable {
     public static final String DEBUG_TAG = "ShoppingListRecyclerAdapter";
-
+    private FirebaseDatabase database;
     private List<ShoppingItem> shoppingList;
     private List<ShoppingItem> unfiltered;
     private Context context;
@@ -100,6 +105,11 @@ public class CartRecyclerAdapter
              * can remove like in deleteItem()
              */
             // TODO:
+            database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey()).
+                    child("shopping_list").push().setValue(shoppingItem);
+            DatabaseReference item  = database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(shoppingItem.getKey());
+            item.removeValue();
+            notifyDataSetChanged();
         });
         holder.itemView.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Edit item: " + shoppingItem);
@@ -135,14 +145,11 @@ public class CartRecyclerAdapter
                             resultsModel.add(shoppingItem);
                         }
                     }
-
                     filterResults.count = resultsModel.size();
                     filterResults.values = resultsModel;
                 }
-
                 return filterResults;
             }
-
             @SuppressWarnings("unchecked")
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
