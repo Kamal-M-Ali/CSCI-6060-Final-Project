@@ -171,6 +171,7 @@ public class CartActivity extends LoggedInActivity
     }
 
     /**
+     *
      * Implement delete method for EditShoppingItemDialog, will delete a shopping item in the shopping list.
      * @param item shopping item to delete
      */
