@@ -105,7 +105,8 @@ public class CartRecyclerAdapter extends RecyclerView.Adapter<CartRecyclerAdapte
                                 database.getReference(CartActivity.ROOMMATE_CARTS_REF)
                                         .child(roommate.getKey())
                                         .child("cart").child(key).removeValue();
-                                database.getReference(SHOPPING_LIST_REF).push().setValue(shoppingItem.getItemName());
+                                shoppingItem.setKey(null); // remove the old key
+                                database.getReference(SHOPPING_LIST_REF).push().setValue(shoppingItem);
                                 myCart.remove(holder.getAdapterPosition());
                                 notifyItemRemoved(holder.getAdapterPosition());
 

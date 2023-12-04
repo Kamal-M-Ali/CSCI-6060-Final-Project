@@ -118,10 +118,11 @@ public class ShoppingListRecyclerAdapter
                         if (dataSnapshot.exists() && dataSnapshot.getKey() != null) {
                             for (DataSnapshot roommate : dataSnapshot.getChildren()) {
                                 // add the item onto the roommate's cart
+                                shoppingItem.setKey(null); // remove old key
                                 database.getReference(CartActivity.ROOMMATE_CARTS_REF)
                                         .child(roommate.getKey())
-                                        .child("cart").push().setValue(shoppingItem.getItemName());
-                                database.getReference(SHOPPING_LIST_REF).child(shoppingItem.getKey()).removeValue();
+                                        .child("cart").push().setValue(shoppingItem);
+                                database.getReference(SHOPPING_LIST_REF).child(key).removeValue();
                                 unfiltered.remove(holder.getAdapterPosition());
                                 notifyItemRemoved(holder.getAdapterPosition());
 
