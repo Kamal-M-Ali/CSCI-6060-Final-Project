@@ -135,23 +135,23 @@ public class CheckoutActivity extends LoggedInActivity {
                                                 Log.d(DEBUG_TAG, "Existing purchase list.");
                                                 existing.setAmount(existing.getAmount() + total);
                                                 existing.getPurchased().putAll(account.getCart());
-                                                database.getReference(PurchasesActivity.PURCHASES_REF).push()
+                                                database.getReference(PurchasesActivity.PURCHASES_REF)
                                                         .child(existingKey).setValue(existing);
                                             }
-
-                                            // remove the cart from carts
-                                            database.getReference(CartActivity.ROOMMATE_CARTS_REF)
-                                                    .child(roommate.getKey())
-                                                    .child("cart").removeValue();
-
-                                            // inform the user
-                                            Toast.makeText(getApplicationContext(), "Successfully purchased items.",
-                                                    Toast.LENGTH_SHORT).show();
                                         } else {
                                             Log.d(DEBUG_TAG, "New purchase list.");
                                             database.getReference(PurchasesActivity.PURCHASES_REF)
                                                     .push().setValue(purchased);
                                         }
+
+                                        // remove the cart from carts
+                                        database.getReference(CartActivity.ROOMMATE_CARTS_REF)
+                                                .child(roommate.getKey())
+                                                .child("cart").removeValue();
+
+                                        // inform the user
+                                        Toast.makeText(getApplicationContext(), "Successfully purchased items.",
+                                                Toast.LENGTH_SHORT).show();
                                     } else {
                                         Log.w(DEBUG_TAG, "Query2 failed: " + task.getException());
                                     }
