@@ -57,7 +57,7 @@ public class CheckoutActivity extends LoggedInActivity {
         double total;
         // need to use try-catch to guard against possible non-numbers entered
         // and given as arguments to Double.parseDouble
-                try {
+        try {
             total = Double.parseDouble(price.getText().toString());
         } catch( NumberFormatException nfe ) {
             // This check is just a precaution, since the user will be able to enter only numbers
@@ -76,7 +76,7 @@ public class CheckoutActivity extends LoggedInActivity {
         }
 
         // Check if value entered is positive
-                if (total < 0) {
+        if (total < 0) {
             Toast toast = Toast.makeText(getApplicationContext(),
                     "Enter only positive decimal values",
                     Toast.LENGTH_SHORT);
@@ -87,8 +87,7 @@ public class CheckoutActivity extends LoggedInActivity {
 
         // first we need to get the user
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-                if (user != null ) {
+        if (user != null ) {
             // next find the cart of the user (it is automatically created on creation
             FirebaseDatabase database = FirebaseDatabase.getInstance();
             DatabaseReference dbr = database.getReference(CartActivity.ROOMMATE_CARTS_REF);
@@ -98,11 +97,13 @@ public class CheckoutActivity extends LoggedInActivity {
                 if (task.isSuccessful()) {
                     // we have a list of values containing the users that match the query (should be 1)
                     DataSnapshot dataSnapshot = task.getResult();
-                    if (dataSnapshot.exists() && dataSnapshot.getKey() != null) {
+                    if (dataSnapshot.exists()) {
                         for (DataSnapshot roommate : dataSnapshot.getChildren()) {
                             // move the account to the roommates cart
                             Account account = roommate.getValue(Account.class);
                             Purchase purchased = new Purchase(account.getAccountName(), account.getCart(), total);
+
+                            Log.d(DEBUG_TAG, "Purchasing: " + purchased);
 
                             if (account.getCart() == null) {
                                 Log.d(DEBUG_TAG, "Nothing to purchase.");
@@ -110,14 +111,14 @@ public class CheckoutActivity extends LoggedInActivity {
                                         Toast.LENGTH_SHORT).show();
                             } else {
                                 // now check if the user has an existing purchase list
-                                DatabaseReference purchastList = database.getReference(PurchasesActivity.PURCHASES_REF);
-                                Query query2 = purchastList.orderByChild("accountName").equalTo(user.getEmail());
+                                DatabaseReference purchases = database.getReference(PurchasesActivity.PURCHASES_REF);
+                                Query query2 = purchases.orderByChild("accountName").equalTo(user.getEmail());
 
-                                Log.d(DEBUG_TAG, "CHECKING FOR EXISTING");
                                 query2.get().addOnCompleteListener(task2 -> {
-                                    if (task.isSuccessful()) {
+                                    if (task2.isSuccessful()) {
                                         DataSnapshot dataSnapshot2 = task2.getResult();
-                                        if (dataSnapshot2.exists() && dataSnapshot2.getKey() != null) {
+                                        if (dataSnapshot2.exists()) {
+                                            Log.d(DEBUG_TAG, "Got purchases.");
                                             Purchase existing = null;
                                             String existingKey = null;
                                             for (DataSnapshot purchaseList : dataSnapshot2.getChildren()) {
@@ -134,7 +135,7 @@ public class CheckoutActivity extends LoggedInActivity {
                                                 Log.d(DEBUG_TAG, "Existing purchase list.");
                                                 existing.setAmount(existing.getAmount() + total);
                                                 existing.getPurchased().putAll(account.getCart());
-                                                database.getReference(PurchasesActivity.PURCHASES_REF)
+                                                database.getReference(PurchasesActivity.PURCHASES_REF).push()
                                                         .child(existingKey).setValue(existing);
                                             }
 
@@ -146,13 +147,20 @@ public class CheckoutActivity extends LoggedInActivity {
                                             // inform the user
                                             Toast.makeText(getApplicationContext(), "Successfully purchased items.",
                                                     Toast.LENGTH_SHORT).show();
+                                        } else {
+                                            Log.d(DEBUG_TAG, "New purchase list.");
+                                            database.getReference(PurchasesActivity.PURCHASES_REF)
+                                                    .push().setValue(purchased);
                                         }
+                                    } else {
+                                        Log.w(DEBUG_TAG, "Query2 failed: " + task.getException());
                                     }
                                 });
                             }
 
                             // go back to the home page activity
                             startActivity(new Intent(this.getApplicationContext(), HomeActivity.class));
+
                             break; // only look at the first roommate
                         }
                     } else {
