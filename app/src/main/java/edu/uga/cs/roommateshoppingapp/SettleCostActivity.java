@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,8 +24,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import org.w3c.dom.Text;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import edu.uga.cs.roommateshoppingapp.data.Account;
 import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
@@ -38,11 +45,22 @@ public class SettleCostActivity extends LoggedInActivity {
     private FirebaseDatabase database;
     private List<Account> roommateList;
     private Context context;
+    private double total = 0.0;
+    private double averagePerRoommate = 0.0;
+    private double numRoommates = 0.0;
+    private String userEmail = "";
+    private List<String> userEmails = new ArrayList<>();
+    private List<Double> roommateTotals = new ArrayList<>();
+    StringBuilder result = new StringBuilder();
+    TextView textView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(DEBUG_TAG, "SettleCostActivity.onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settle_cost);
+
+      textView = findViewById(R.id.textView8);
 
         // descendant activity, enable up button
         ActionBar ab = getSupportActionBar();
@@ -51,23 +69,17 @@ public class SettleCostActivity extends LoggedInActivity {
 
         // show items
         shoppingList = new ArrayList<>();
-        recyclerView = findViewById(R.id.recyclerView2);
-
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-
-        recyclerAdapter = new CartRecyclerAdapter(shoppingList, SettleCostActivity.this);
-        recyclerView.setAdapter(recyclerAdapter);
         database = FirebaseDatabase.getInstance();
 
         setupSettleCost();
 
         // set up settle cost event
-        //todo: add implementation for settling the cost
         Button checkout = findViewById(R.id.checkout);
         checkout.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Starting settle cost process");
-            startActivity(new Intent(this.getApplicationContext(), CheckoutActivity.class));
+            database.getReference(PurchasesActivity.PURCHASES_REF).removeValue();
+            Log.d(DEBUG_TAG, "Deleted Purchases");
+            textView.setText("Cost has been settled!");
         });
     }
 
@@ -75,12 +87,9 @@ public class SettleCostActivity extends LoggedInActivity {
      * Helper method for initializing the purchases
      */
     private void setupSettleCost() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        DatabaseReference dbr = database.getReference(PurchasesActivity.PURCHASES_REF);
 
-        if (user != null ) {
-            // next find the cart of the user (it is automatically created on creation0
-            DatabaseReference dbr = database.getReference(CartActivity.ROOMMATE_CARTS_REF);
-            //Query query = dbr.orderByChild("accountName").equalTo(user.getEmail());
+        if (dbr != null ) {
             Query query = dbr.orderByChild("accountName");
 
             query.get().addOnCompleteListener(task -> {
@@ -89,21 +98,56 @@ public class SettleCostActivity extends LoggedInActivity {
                     DataSnapshot dataSnapshot = task.getResult();
                     if (dataSnapshot.exists() && dataSnapshot.getKey() != null) {
                         for (DataSnapshot roommate : dataSnapshot.getChildren()) {
-                            // remove the item from the roommate's cart
-                            DatabaseReference cart = database.getReference(CartActivity.ROOMMATE_CARTS_REF)
-                                    .child(roommate.getKey())
-                                    .child("cart");
-                            Log.d("etc", roommate.toString());
+                            numRoommates++;
+                            String totalString = (roommate.child("amount").toString());
+                            // Remove non-numeric characters
+                            String numericPart = totalString.replaceAll("[^\\d.]", "");
+                            Double numericValue = Double.parseDouble(numericPart);
+                            //add to roommateTotals array
+                            if(numericValue != null) {
+                                roommateTotals.add(numericValue);
+                            }
+
+                            String roommateName = roommate.child("accountName").toString();
+                            //regular expression pattern to match the email address
+                            Pattern pattern = Pattern.compile("\\bvalue = (\\S+@\\S+)\\b");
+                            //matcher for the input string
+                            Matcher matcher = pattern.matcher(roommateName);
+                            //Check if found
+                            if (matcher.find()) {
+                                //Extract email from the matched group
+                                userEmail = matcher.group(1);
+                                userEmails.add(userEmail);
+                            } else {
+                                Log.e(DEBUG_TAG, "Failed to find email");
+                            }
+                            total = total + numericValue;
                         }
+                        averagePerRoommate = total/numRoommates;
+                        for (int i = 0; i < userEmails.size(); i++) {
+                            String userEmail = userEmails.get(i);
+                            double spentAmount = roommateTotals.get(i);
+
+                            // Append person's email and spending to the StringBuilder
+                            result.append("User: ").append(userEmail)
+                                    .append(", Spent: $").append(spentAmount)
+                                    .append("\n");
+                        }
+                        //round the average to two decimal places
+                        BigDecimal bd = new BigDecimal(averagePerRoommate);
+                        bd = bd.setScale(2, RoundingMode.HALF_UP);
+                        averagePerRoommate = bd.doubleValue();
+                        result.append("\nAverage Per Person: $").append(averagePerRoommate);
+                        textView.setText(result.toString());
                     } else {
-                        Log.e(DEBUG_TAG, "Failed to find user.");
+                        Log.e(DEBUG_TAG, "Failed to find Purchase list.");
                     }
                 } else {
-                    Log.w(DEBUG_TAG, "failed to find user", task.getException());
+                    Log.w(DEBUG_TAG, "failed to find Purchase list", task.getException());
                 }
             });
         } else {
-            Log.d(DEBUG_TAG, "No user found.");
+            Log.d(DEBUG_TAG, "No Purchase list found.");
         }
     }
 }
