@@ -124,9 +124,9 @@ public class ShoppingListRecyclerAdapter
                                         .child(roommate.getKey())
                                         .child("cart").push().setValue(shoppingItem);
                                 database.getReference(SHOPPING_LIST_REF).child(key).removeValue();
-                                unfiltered.remove(holder.getAdapterPosition());
-                                getFilter().filter("");
-                                notifyItemRemoved(holder.getAdapterPosition());
+                                //unfiltered.remove(holder.getAdapterPosition());
+                                //getFilter().filter("");
+                                //notifyItemRemoved(holder.getAdapterPosition());
 
                                 // inform the user
                                 Log.d(DEBUG_TAG, "setValue: success");

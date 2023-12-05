@@ -74,9 +74,8 @@ public class ShoppingListActivity extends LoggedInActivity
         database = FirebaseDatabase.getInstance();
         DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
 
-        // initialize the RecyclerView
-        dbr.addListenerForSingleValueEvent(new ValueEventListener() {
-            @SuppressLint("NotifyDataSetChanged")
+        // add listener for data changes
+        dbr.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 shoppingList.clear();
@@ -134,11 +133,6 @@ public class ShoppingListActivity extends LoggedInActivity
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Add item success
-                        shoppingItem.setKey(dbr.getKey());
-                        recyclerAdapter.getUnfiltered().add(shoppingItem);
-                        shoppingList.add(shoppingItem);
-                        recyclerAdapter.getFilter().filter(searchView.getQuery());
-                        recyclerAdapter.notifyItemInserted(shoppingList.size());
                         recyclerView.post(() -> recyclerView.smoothScrollToPosition(shoppingList.size() - 1));
 
                         Log.d(DEBUG_TAG, "setValue: success");
@@ -168,11 +162,6 @@ public class ShoppingListActivity extends LoggedInActivity
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Update item success
-                        recyclerAdapter.getUnfiltered().set(position, item);
-                        shoppingList.set(position, item);
-                        recyclerAdapter.getFilter().filter(searchView.getQuery());
-                        recyclerAdapter.notifyItemChanged(position);
-
                         Log.d(DEBUG_TAG, "setValue: success");
                         Toast.makeText(getApplicationContext(),
                                 "Updated item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
@@ -199,11 +188,6 @@ public class ShoppingListActivity extends LoggedInActivity
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Delete item success
-                        recyclerAdapter.getUnfiltered().remove(position);
-                        shoppingList.remove(position);
-                        recyclerAdapter.getFilter().filter(searchView.getQuery());
-                        recyclerAdapter.notifyItemRemoved(position);
-
                         Log.d(DEBUG_TAG, "removeValue: success");
                         Toast.makeText(getApplicationContext(),
                                 "Deleted item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
@@ -214,12 +198,5 @@ public class ShoppingListActivity extends LoggedInActivity
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
-
-    /**
-     * For pushing updates up from recycler adapter on addition of item to cart.
-     */
-    public void push(int position) {
-        shoppingList.remove(position);
     }
 }

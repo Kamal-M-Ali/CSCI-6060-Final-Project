@@ -43,12 +43,11 @@ public class HomeActivity extends LoggedInActivity {
 
         viewPurchased.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "viewPurchased.onClick(): starting view purchases activity");
-            // TODO: startActivity(...)
+            startActivity(new Intent(this.getApplicationContext(), PurchasesActivity.class));
         });
 
         settle.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "settle.onClick(): starting settle the cost activity");
-            // TODO: startActivty(...)
             startActivity(new Intent(this.getApplicationContext(), SettleCostActivity.class));
         });
     }

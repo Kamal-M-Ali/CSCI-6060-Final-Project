@@ -127,17 +127,17 @@ public class CheckoutActivity extends LoggedInActivity {
                                                 break; // only look at the first roommate
                                             }
 
-                                            if (existing == null || existing.getPurchased() == null || existing.getPurchased().isEmpty()) {
-                                                Log.d(DEBUG_TAG, "New purchase list.");
-                                                database.getReference(PurchasesActivity.PURCHASES_REF)
-                                                        .push().setValue(purchased);
+                                            Log.d(DEBUG_TAG, "Existing purchase list.");
+                                            existing.setAmount(existing.getAmount() + total);
+
+                                            if (existing.getPurchased() == null) {
+                                                existing.setPurchased(account.getCart());
                                             } else {
-                                                Log.d(DEBUG_TAG, "Existing purchase list.");
-                                                existing.setAmount(existing.getAmount() + total);
                                                 existing.getPurchased().putAll(account.getCart());
-                                                database.getReference(PurchasesActivity.PURCHASES_REF)
-                                                        .child(existingKey).setValue(existing);
                                             }
+
+                                            database.getReference(PurchasesActivity.PURCHASES_REF)
+                                                    .child(existingKey).setValue(existing);
                                         } else {
                                             Log.d(DEBUG_TAG, "New purchase list.");
                                             database.getReference(PurchasesActivity.PURCHASES_REF)

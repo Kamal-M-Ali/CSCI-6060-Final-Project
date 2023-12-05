@@ -64,7 +64,7 @@ public class EditShoppingItemDialog extends DialogFragment {
 
         // get the view objects in the AlertDialog
         editItem = layout.findViewById(R.id.editItem);
-
+        editItem.setText(itemName);
 
         // create a new AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());

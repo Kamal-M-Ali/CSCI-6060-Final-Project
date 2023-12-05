@@ -28,12 +28,17 @@
     <string name="checkout_text">Checkout</string>
     <string name="action_enter_price">$0.00</string>
     <string name="action_purchase_cart">Purchase</string>
+    <!-- Strings related to purchases -->
+    <string name="view_purchase_text">Tap an item on the list to view the group of purchases associated with it.</string>
+    <string name="delete_item_text">Tap an item on the list to remove it from purchased.</string>
+    <string name="action_update_purchases">Modify total</string>
+    <string name="dialog_purchase">Total</string>
     <!-- Strings related to Settle Cost -->
     <string name="settle_cost_text">Average cost per roommate calculated below. Clicking the button below will reset the purchased items list.</string>
     <string name="action_settle_cost">Settle Cost</string>
     <!-- Strings related to shopping item -->
     <string name="item_prefix">Item: %s</string>
-    <string name="edit_text">Tap an item on the list to edit it</string>
+    <string name="edit_text">Tap an item on the list to edit it.</string>
     <string name="action_purchase_item">Add to cart</string>
     <string name="action_return_item">Return to shopping list</string>
     <!-- String related to settings -->

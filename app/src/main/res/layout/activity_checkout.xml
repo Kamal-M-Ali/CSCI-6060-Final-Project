@@ -26,7 +26,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:hint="@string/action_enter_price"
-        android:inputType="text"
+        android:inputType="numberDecimal"
         android:minHeight="48dp"
         app:layout_constraintBottom_toTopOf="@+id/purchase"
         app:layout_constraintEnd_toEndOf="parent"

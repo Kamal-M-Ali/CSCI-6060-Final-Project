@@ -6,7 +6,7 @@
     android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
-        android:id="@+id/card_view2"
+        android:id="@+id/card_view4"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -18,7 +18,7 @@
         card_view:contentPadding="25dp">
 
         <TextView
-            android:id="@+id/cartItemText"
+            android:id="@+id/purchasedItemText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
