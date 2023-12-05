@@ -136,6 +136,7 @@ public class ShoppingListActivity extends LoggedInActivity
                         // Add item success
                         shoppingItem.setKey(dbr.getKey());
                         recyclerAdapter.getUnfiltered().add(shoppingItem);
+                        shoppingList.add(shoppingItem);
                         recyclerAdapter.getFilter().filter(searchView.getQuery());
                         recyclerAdapter.notifyItemInserted(shoppingList.size());
                         recyclerView.post(() -> recyclerView.smoothScrollToPosition(shoppingList.size() - 1));
@@ -168,6 +169,7 @@ public class ShoppingListActivity extends LoggedInActivity
                     if (task.isSuccessful()) {
                         // Update item success
                         recyclerAdapter.getUnfiltered().set(position, item);
+                        shoppingList.set(position, item);
                         recyclerAdapter.getFilter().filter(searchView.getQuery());
                         recyclerAdapter.notifyItemChanged(position);
 
@@ -198,6 +200,7 @@ public class ShoppingListActivity extends LoggedInActivity
                     if (task.isSuccessful()) {
                         // Delete item success
                         recyclerAdapter.getUnfiltered().remove(position);
+                        shoppingList.remove(position);
                         recyclerAdapter.getFilter().filter(searchView.getQuery());
                         recyclerAdapter.notifyItemRemoved(position);
 
@@ -211,5 +214,12 @@ public class ShoppingListActivity extends LoggedInActivity
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    /**
+     * For pushing updates up from recycler adapter on addition of item to cart.
+     */
+    public void push(int position) {
+        shoppingList.remove(position);
     }
 }

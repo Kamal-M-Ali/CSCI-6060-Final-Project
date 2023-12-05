@@ -145,7 +145,6 @@ public class ShoppingListRecyclerAdapter
             } else {
                 Log.d(DEBUG_TAG, "No user found.");
             }
-
         });
         holder.itemView.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "Edit item: " + shoppingItem);
