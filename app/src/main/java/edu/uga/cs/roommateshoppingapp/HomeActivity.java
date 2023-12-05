@@ -27,6 +27,7 @@ public class HomeActivity extends LoggedInActivity {
         // defining views
         Button shoppingList = findViewById(R.id.shoppingList);
         Button cart = findViewById(R.id.cart);
+        Button viewPurchased = findViewById(R.id.viewPurchased);
         Button settle = findViewById(R.id.settle);
 
         // setting up button listeners
@@ -40,9 +41,14 @@ public class HomeActivity extends LoggedInActivity {
             startActivity(new Intent(this.getApplicationContext(), CartActivity.class));
         });
 
+        viewPurchased.setOnClickListener(view -> {
+            Log.d(DEBUG_TAG, "viewPurchased.onClick(): starting view purchases activity");
+            startActivity(new Intent(this.getApplicationContext(), PurchasesActivity.class));
+        });
+
         settle.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "settle.onClick(): starting settle the cost activity");
-            // TODO: startActivty(...)
+            startActivity(new Intent(this.getApplicationContext(), SettleCostActivity.class));
         });
     }
 }

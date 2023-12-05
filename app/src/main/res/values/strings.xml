@@ -13,7 +13,7 @@
     <string name="home_text">You can view the household\'s shopping list, view your shopping cart, or settle the cost.</string>
     <string name="action_view_list">Shopping list</string>
     <string name="action_view_cart">My cart</string>
-    <string name="action_settle_cost">Settle the cost</string>
+    <string name="action_purchased">Purchases</string>
     <string name="action_settings">Settings</string>
     <!-- Strings related to shopping list -->
     <string name="desc_floating_btn">Add a new shopping item</string>
@@ -21,10 +21,26 @@
     <string name="dialog_add_item">Add item</string>
     <string name="dialog_edit_item">Edit item</string>
     <string name="action_search">Search for an item</string>
+    <!-- Strings related to cart -->
+    <string name="edit_cart_text">Tap an item on the list to return it to the shopping list.</string>
+    <string name="action_check_out">Checkout</string>
+    <!-- Strings related to checkout -->
+    <string name="checkout_text">Checkout</string>
+    <string name="action_enter_price">$0.00</string>
+    <string name="action_purchase_cart">Purchase</string>
+    <!-- Strings related to purchases -->
+    <string name="view_purchase_text">Tap an item on the list to view the group of purchases associated with it.</string>
+    <string name="delete_item_text">Tap an item on the list to remove it from purchased.</string>
+    <string name="action_update_purchases">Modify total</string>
+    <string name="dialog_purchase">Total</string>
+    <!-- Strings related to Settle Cost -->
+    <string name="settle_cost_text">Average cost per roommate calculated below. Clicking the button below will reset the purchased items list.</string>
+    <string name="action_settle_cost">Settle Cost</string>
     <!-- Strings related to shopping item -->
     <string name="item_prefix">Item: %s</string>
-    <string name="edit_text">Tap an item on the list to edit it</string>
+    <string name="edit_text">Tap an item on the list to edit it.</string>
     <string name="action_purchase_item">Add to cart</string>
+    <string name="action_return_item">Return to shopping list</string>
     <!-- String related to settings -->
     <string name="action_delete_account">Delete account</string>
     <string name="participating_text">Participating roommates</string>

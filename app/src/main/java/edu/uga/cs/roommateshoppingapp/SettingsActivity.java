@@ -16,13 +16,13 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import edu.uga.cs.roommateshoppingapp.data.Account;
+import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 
 /**
  * Settings class for allowing the user to delete their account and also review participating
@@ -55,7 +55,6 @@ public class SettingsActivity extends LoggedInActivity {
         }
 
         // setting up delete account event listener
-        // TODO: fix this messes stuff when settling the cost
         Button delete = findViewById(R.id.deleteAccount);
         delete.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "delete.onClick()");
@@ -75,9 +74,26 @@ public class SettingsActivity extends LoggedInActivity {
 
                 FirebaseDatabase database = FirebaseDatabase.getInstance();
                 DatabaseReference roommate = database.getReference(CartActivity.ROOMMATE_CARTS_REF).child(account.getKey());
+                DatabaseReference shoppingList = database.getReference(ShoppingListActivity.SHOPPING_LIST_REF);
 
                 Log.d(DEBUG_TAG, "Moving roommate's cart to shopping list.");
-                // TODO: add any items in roommates cart back to the shopping list
+                roommate.child("cart").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for(DataSnapshot postSnapshot: snapshot.getChildren()) {
+                            ShoppingItem shoppingItem = postSnapshot.getValue(ShoppingItem.class);
+                            assert shoppingItem != null;
+                            shoppingList.push().setValue(shoppingItem);
+                            Log.d(DEBUG_TAG, "ValueEventListener: added: " + roommate);
+                            Log.d(DEBUG_TAG, "ValueEventListener: key: " + postSnapshot.getKey());
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.d(DEBUG_TAG, "ValueEventListener: reading failed: " + error.getMessage());
+                    }
+                });
 
                 Log.d(DEBUG_TAG, "Removing roommate's cart: " + account.getAccountName());
                 roommate.removeValue();

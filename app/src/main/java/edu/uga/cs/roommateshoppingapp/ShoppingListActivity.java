@@ -55,7 +55,6 @@ public class ShoppingListActivity extends LoggedInActivity
         if (ab != null)
             ab.setDisplayHomeAsUpEnabled(true);
 
-
         // setting up floating action bar for adding a new shopping item
         FloatingActionButton floatingButton = findViewById(R.id.floatingActionButton);
         floatingButton.setOnClickListener(v -> {
@@ -75,9 +74,8 @@ public class ShoppingListActivity extends LoggedInActivity
         database = FirebaseDatabase.getInstance();
         DatabaseReference dbr = database.getReference(SHOPPING_LIST_REF);
 
-        // initialize the RecyclerView
-        dbr.addListenerForSingleValueEvent(new ValueEventListener() {
-            @SuppressLint("NotifyDataSetChanged")
+        // add listener for data changes
+        dbr.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 shoppingList.clear();
@@ -92,7 +90,9 @@ public class ShoppingListActivity extends LoggedInActivity
 
                 Log.d(DEBUG_TAG, "ValueEventListener: notifying recyclerAdapter");
                 recyclerAdapter.notifyDataSetChanged();
-                sync();
+                recyclerAdapter.getUnfiltered().clear();
+                recyclerAdapter.getUnfiltered().addAll(shoppingList);
+                recyclerAdapter.getFilter().filter(searchView.getQuery());
             }
 
             @Override
@@ -133,10 +133,6 @@ public class ShoppingListActivity extends LoggedInActivity
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Add item success
-                        shoppingItem.setKey(dbr.getKey());
-                        shoppingList.add(shoppingItem);
-                        sync();
-                        recyclerAdapter.notifyItemInserted(shoppingList.size());
                         recyclerView.post(() -> recyclerView.smoothScrollToPosition(shoppingList.size() - 1));
 
                         Log.d(DEBUG_TAG, "setValue: success");
@@ -166,10 +162,6 @@ public class ShoppingListActivity extends LoggedInActivity
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Update item success
-                        shoppingList.set(position, item);
-                        sync();
-                        recyclerAdapter.notifyItemChanged(position);
-
                         Log.d(DEBUG_TAG, "setValue: success");
                         Toast.makeText(getApplicationContext(),
                                 "Updated item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
@@ -196,10 +188,6 @@ public class ShoppingListActivity extends LoggedInActivity
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         // Delete item success
-                        shoppingList.remove(position);
-                        sync();
-                        recyclerAdapter.notifyItemRemoved(position);
-
                         Log.d(DEBUG_TAG, "removeValue: success");
                         Toast.makeText(getApplicationContext(),
                                 "Deleted item: " + item.getItemName(), Toast.LENGTH_SHORT).show();
@@ -210,14 +198,5 @@ public class ShoppingListActivity extends LoggedInActivity
                                 Toast.LENGTH_SHORT).show();
                     }
                 });
-    }
-
-    /**
-     * This method syncs the recycler adapter with the new shopping list and refilters the contents
-     * in case the user is mid-search while updating/deleting.
-     */
-    private void sync() {
-        recyclerAdapter.sync(shoppingList);
-        recyclerAdapter.getFilter().filter(searchView.getQuery());
     }
 }

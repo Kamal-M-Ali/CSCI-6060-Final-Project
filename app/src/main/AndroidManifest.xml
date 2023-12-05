@@ -15,8 +15,25 @@
         android:theme="@style/Theme.RoommateShoppingApp"
         tools:targetApi="31">
         <activity
+            android:name=".PurchaseGroupActivity"
+            android:exported="false"
+            android:parentActivityName=".PurchasesActivity" />
+        <activity
+            android:name=".PurchasesActivity"
+            android:exported="false"
+            android:parentActivityName=".HomeActivity" />
+        <activity
+            android:name=".SettleCostActivity"
+            android:exported="false"
+            android:parentActivityName=".HomeActivity" />
+        <activity
+            android:name=".CheckoutActivity"
+            android:exported="false"
+            android:parentActivityName=".CartActivity" />
+        <activity
             android:name=".CartActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".HomeActivity" />
         <activity
             android:name=".SettingsActivity"
             android:exported="false"
