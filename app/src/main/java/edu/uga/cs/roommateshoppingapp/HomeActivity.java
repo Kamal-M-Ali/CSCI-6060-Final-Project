@@ -49,6 +49,7 @@ public class HomeActivity extends LoggedInActivity {
         settle.setOnClickListener(view -> {
             Log.d(DEBUG_TAG, "settle.onClick(): starting settle the cost activity");
             // TODO: startActivty(...)
+            startActivity(new Intent(this.getApplicationContext(), SettleCostActivity.class));
         });
     }
 }

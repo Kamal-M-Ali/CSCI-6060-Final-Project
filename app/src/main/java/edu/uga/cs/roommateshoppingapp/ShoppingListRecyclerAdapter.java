@@ -30,6 +30,7 @@ import java.util.List;
 
 import edu.uga.cs.roommateshoppingapp.data.ShoppingItem;
 
+
 /**
  * RecyclerViewAdapter for displaying the list of shopping items.
  */
