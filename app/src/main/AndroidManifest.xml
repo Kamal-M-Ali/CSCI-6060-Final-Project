@@ -16,7 +16,12 @@
         tools:targetApi="31">
         <activity
             android:name=".PurchasesActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:parentActivityName=".HomeActivity" />
+        <activity
+            android:name=".SettleCostActivity"
+            android:exported="false"
+            android:parentActivityName=".HomeActivity" />
         <activity
             android:name=".CheckoutActivity"
             android:exported="false"

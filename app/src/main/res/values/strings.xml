@@ -29,6 +29,9 @@
     <string name="checkout_text">Checkout</string>
     <string name="action_enter_price">$0.00</string>
     <string name="action_purchase_cart">Purchase</string>
+    <!-- Strings related to Settle Cost -->
+    <string name="settle_cost_text">Average cost per roommate.</string>
+    <string name="action_settle_cost">Settle the cost</string>
     <!-- Strings related to shopping item -->
     <string name="item_prefix">Item: %s</string>
     <string name="edit_text">Tap an item on the list to edit it</string>
