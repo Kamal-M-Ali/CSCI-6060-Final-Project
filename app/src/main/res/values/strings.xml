@@ -14,7 +14,6 @@
     <string name="action_view_list">Shopping list</string>
     <string name="action_view_cart">My cart</string>
     <string name="action_purchased">Purchases</string>
-    <string name="action_settle_cost">Settle the cost</string>
     <string name="action_settings">Settings</string>
     <!-- Strings related to shopping list -->
     <string name="desc_floating_btn">Add a new shopping item</string>
